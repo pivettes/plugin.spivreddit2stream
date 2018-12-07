@@ -1,4 +1,4 @@
-# Welcome to your addon!
+# Welcome to your addon
 
 1. You might want to move this folder into the kodi addon folder for convinience when debugging. It might also be needed to be `enabled` inside of the kodi addon browser.
 2. Now start coding! Just open up the `.py` file in this folder and create what you would like Kodi to do! If you're creating a plugin, please check out [this kodi routing framework](https://github.com/tamland/kodi-plugin-routing) and copy a version of that module to your kodi addon folder.

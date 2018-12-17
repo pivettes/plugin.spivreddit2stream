@@ -9,6 +9,8 @@
 2. Now start coding! Just open up the `.py` file in this folder and create what you would like Kodi to do! If you're creating a plugin, please check out [this kodi routing framework](https://github.com/tamland/kodi-plugin-routing) and copy a version of that module to your kodi addon folder.
 
 #### Spiv - add to use "Install from zip"
+#### module request
+#### https://mirrors.kodi.tv/addons/gotham/script.module.requests/
 
 3. Write some tests, maybe? Don't forget to activate [travis](https://travis-ci.org/) access to your repository. We've created a test folder and a travis config file for that, otherwise just delete those ;)
 4. You might want to look at your `addon.xml` it should already be filled, but you will need to understand what your doing and might want to fill in some more info. So read up [here](http://kodi.wiki/view/Addon.xml).

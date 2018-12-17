@@ -40,15 +40,14 @@ def getRequest(url, udata=None, headers=httpHeaders):
         xbmc.log(msg='REQUEST ERROR', level=xbmc.LOGDEBUG)
     return(page)
 # end of monday work!
+
 """ next
     0. systématiser l'utilisation de la fonction getRequest
     1. ordonner la liste par horaire
     2. capturer le vs et le V
     3. présenter les tags ds acestreamns sur la gauche
     4. gérer les exceptions
-
  """
-
 
 ADDON = xbmcaddon.Addon()
 logger = logging.getLogger(ADDON.getAddonInfo('id'))
@@ -64,68 +63,39 @@ AS_LAUNCH_LINK = 'XBMC.RunPlugin(plugin://program.plexus/?mode=1&url={url}&name=
 _response = getRequest("https://www.reddit.com/r/soccerstreams/")
 _content = _response._content
 _pattern = re.compile(r'\[[0-9].*vs.*<\/h2', re.UNICODE)
-_patternLink = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_vs_[\w]*', re.UNICODE)
-_list = _pattern.findall(_content.decode('utf8'))
-_listLink = _patternLink.findall(_content.decode('utf8'))
-
-""" _content[m.end() - 250:m.end()-4] """
-
-""" for m in _pattern.finditer(_content):
-    _title = m.group()[:-4]
-    print("title: " + _title)
-    _int1 = _content[m.end() - 250:m.end()-4]
-    print("int1: " + _int1)
-    _link = _patternLink.search(_int1).group(0).replace("/", "-")    
-    print("link: " + _link)
-    print(m.start())
-    print(m.span())
-    print(m.group())
-    print(_content[m.end() - 250:m.end()-4]) """
-
-"""     _link = _patternLink.search().group(0)
-    print(_link) """
-
-
+_urlLinkPattern = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_vs_[\w]*', re.UNICODE)
+_streamLinkPattern = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
+_acePattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
+#_list = _pattern.findall(_content.decode('utf8'))
+#_listLink = _patternURLLink.findall(_content.decode('utf8'))
 
 @plugin.route('/')
 def index():
-
+    # Initial matches parsing
     for m in _pattern.finditer(_content):
         _title = m.group()[:-4]
-        print("title: " + _title)
-        _int1 = _content[m.end() - 250:m.end()-4]
-        print("int1: " + _int1)
-        _link = _patternLink.search(_int1).group(0).replace("/", "-")    
-        print("link: " + _link)
-        print(m.start())
-        print(m.span())
-        print(m.group())
-        print(_content[m.end() - 250:m.end()-4])
-
+        _segment = _content[m.end() - 250:m.end()-4]
+        _link = _urlLinkPattern.search(_segment).group(0).replace("/", "-")    
         addDirectoryItem(plugin.handle, plugin.url_for(show_category, _link), ListItem(_title), True)
     
-    print("end of for")
     endOfDirectory(plugin.handle)
-
-"""     i = 0
-    while i < len(_list):
-        addDirectoryItem(plugin.handle, plugin.url_for(show_category, ""+_listLink[i].replace("/", "-")), ListItem(""+_list[i][:-4]), True)
-        logger.debug("" + str(i) + " - "+_listLink[i].replace("/", "-"))
-        logger.debug("" + str(i) + " - "+_list[i][:-4])
-        i += 1 """
-    
-    
-
-
+ 
 @plugin.route('/category/<category_id>')
 def show_category(category_id):
-    dialog = xbmcgui.Dialog()
-    _pat = "https://www.reddit.com/r/soccerstreams/comments/" + category_id + "/"
-    _test = _pat.replace("-", "/")
-    print("URLM: " + _test)
-
-    _responseDetails = requests.get(_test, headers = {'User-agent': 'your bot 0.2'})
+    # Constructs URL   
+    _matchURL = "https://www.reddit.com/r/soccerstreams/comments/" + category_id + "/"
+    _matchURLDecoded = _matchURL.replace("-", "/")
+    # Gather stream links    
+    #_responseDetails = requests.get(_test, headers = {'User-agent': 'your bot 0.2'})
+    _responseDetails = getRequest(_matchURLDecoded)
     _contentDetails = _responseDetails.content
+    for _sl in _streamLinkPattern.finditer(_contentDetails):
+        print("stream link: " + _sl.group())
+        # Last paramter 'isFolder' to False
+        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+_sl.group().replace("/", "-")), ListItem(""+_sl.group()), False)
+
+    endOfDirectory(plugin.handle)
+
     #_listDetails = re.findall(r'\[[a-zA-Z0-9_\[\] ]*\] acestream:\/\/\w+', _contentDetails)
     #_finallist = list(set(_listDetails))
 
@@ -141,11 +111,10 @@ def show_category(category_id):
     #else:
     #    _ok = dialog.ok("heu", "no match!")
 
-    _patternLink2 = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
-    for nm in _patternLink2.finditer(_contentDetails):
-        print("_listDetails: " + nm.group())
-        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+nm.group().replace("/", "-")), ListItem(""+nm.group()), False)
-    endOfDirectory(plugin.handle)
+    #
+    # 
+    # _patternStreamLink = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
+
 """     _listDetails = re.findall(r'acestream:\/\/\w+ (\[[a-zA-Z0-9_\[\] ]*\])?', _contentDetails)
     print("_contentDetails: " + _contentDetails)
     for n in _listDetails:
@@ -159,24 +128,17 @@ def show_category(category_id):
             print("finallist: " + x)
  """
 
-
-    
-
 @plugin.route('/categoryDetails/<categoryDetails_id>')
 def show_categoryDetails(categoryDetails_id):
-    
-    #dialog = xbmcgui.Dialog()
-    #_ok = dialog.ok("heu", categoryDetails_id.replace("-", "/"))
-
+    # Launch the stream    
     _stream = categoryDetails_id.replace("-", "/")
-    _acepattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
-    _stream = _acepattern.search(_stream).group(0)
-
+    print(_stream)
+    #_acepattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
+    _stream = _acePattern.search(_stream).group(0)
     try:
         xbmc.executebuiltin(AS_LAUNCH_LINK.format(url=_stream, name='spiv'))
-    except Exception as inst:
-        #log(inst)   
-        res = "no"        
+    except Exception:        
+        xbmc.log(msg='PLESUS ERROR', level=xbmc.LOGDEBUG)     
 
     endOfDirectory(plugin.handle)
 

@@ -12,17 +12,55 @@ from xbmcgui import ListItem
 from xbmcplugin import addDirectoryItem, endOfDirectory
 
 
+# monday work
+# https://danvatterott.com/blog/2017/03/11/my-first-kodi-addon-pbs-newshour/
+import urllib2
+import zlib
+UTF8 = 'utf-8'
+USERAGENT = """Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 \
+            (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36"""
+httpHeaders = {'User-Agent': USERAGENT,
+               'Accept': "application/json, text/javascript, text/html,*/*",
+               'Accept-Encoding': 'gzip,deflate,sdch',
+               'Accept-Language': 'en-US,en;q=0.8'
+               }
+
+# Get HTML content
+def getRequest(url, udata=None, headers=httpHeaders):
+    req = urllib2.Request(url.encode(UTF8), udata, headers)
+    try:
+        response = urllib2.urlopen(req)
+        page = response.read()
+        if response.info().getheader('Content-Encoding') == 'gzip':
+            page = zlib.decompress(page, zlib.MAX_WBITS + 16)
+        response.close()
+    except Exception:
+        page = ""
+        xbmc.log(msg='REQUEST ERROR', level=xbmc.LOGDEBUG)
+    return(page)
+# end of monday work!
+""" next
+    0. systématiser l'utilisation de la fonction getRequest
+    1. ordonner la liste par horaire
+    2. capturer le vs et le V
+    3. présenter les tags ds acestreamns sur la gauche
+    4. gérer les exceptions
+
+ """
+
+
 ADDON = xbmcaddon.Addon()
 logger = logging.getLogger(ADDON.getAddonInfo('id'))
+# config(): get the logger/handler & set leve to DEBUG - https://github.com/xbmc/generator-kodi-addon/blob/master/generators/app/templates/resources/lib/kodilogging.py
 kodilogging.config()
+# Routing addon - https://github.com/tamland/kodi-plugin-routing
 plugin = routing.Plugin()
-
 # Acestream launch link (Plexus)
 AS_LAUNCH_LINK = 'XBMC.RunPlugin(plugin://program.plexus/?mode=1&url={url}&name={name})'
 
 # Get reddit soccser streams
-# to be optimized
-_response = requests.get('https://www.reddit.com/r/soccerstreams/', headers = {'User-agent': 'your bot 0.3'})
+#_response = requests.get('https://www.reddit.com/r/soccerstreams/', headers = {'User-agent': 'myplugin'})
+_response = getRequest("https://www.reddit.com/r/soccerstreams/")
 _content = _response._content
 _pattern = re.compile(r'\[[0-9].*vs.*<\/h2', re.UNICODE)
 _patternLink = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_vs_[\w]*', re.UNICODE)
@@ -105,7 +143,7 @@ def show_category(category_id):
     _patternLink2 = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
     for nm in _patternLink2.finditer(_contentDetails):
         print("_listDetails: " + nm.group())
-        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+nm.group().replace("/", "-")), ListItem(""+nm.group()), True)
+        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+nm.group().replace("/", "-")), ListItem(""+nm.group()), False)
     endOfDirectory(plugin.handle)
 """     _listDetails = re.findall(r'acestream:\/\/\w+ (\[[a-zA-Z0-9_\[\] ]*\])?', _contentDetails)
     print("_contentDetails: " + _contentDetails)

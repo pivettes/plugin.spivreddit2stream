@@ -26,6 +26,7 @@ httpHeaders = {'User-Agent': USERAGENT,
                }
 
 # Get HTML content
+# https://danvatterott.com/blog/2017/03/11/my-first-kodi-addon-pbs-newshour/
 def getRequest(url, udata=None, headers=httpHeaders):
     req = urllib2.Request(url.encode(UTF8), udata, headers)
     try:

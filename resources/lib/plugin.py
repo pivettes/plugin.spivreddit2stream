@@ -42,7 +42,7 @@ def getRequest(url, udata=None, headers=httpHeaders):
 # end of monday work!
 
 """ next
-    a. git
+    a. git !
     0. systématiser l'utilisation de la fonction getRequest
     1. ordonner la liste par horaire
     2. capturer le vs et le V

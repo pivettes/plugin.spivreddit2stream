@@ -63,8 +63,8 @@ AS_LAUNCH_LINK = 'XBMC.RunPlugin(plugin://program.plexus/?mode=1&url={url}&name=
 #_response = requests.get('https://www.reddit.com/r/soccerstreams/', headers = {'User-agent': 'myplugin'})
 _response = getRequest("https://www.reddit.com/r/soccerstreams/")
 _content = _response
-_pattern = re.compile(r'\[[0-9].*vs.*<\/h2', re.UNICODE)
-_urlLinkPattern = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_vs_[\w]*', re.UNICODE)
+_pattern = re.compile(r'>[^>]*<\/h2><\/a>', re.UNICODE)
+_urlLinkPattern = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_[\w]*', re.UNICODE)
 _streamLinkPattern = re.compile(r'(\[[a-zA-Z0-9_\[\] ]*\] )?acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
 _acePattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
 _tagsPattern = re.compile(r'\[[a-zA-Z0-9_\[\] ]*\]', re.UNICODE)
@@ -73,10 +73,19 @@ _tagsPattern = re.compile(r'\[[a-zA-Z0-9_\[\] ]*\]', re.UNICODE)
 def index():
     # Initial matches parsing
     for m in _pattern.finditer(_content):
-        _title = m.group()[:-4]
-        _segment = _content[m.end() - 250:m.end()-4]
-        _link = _urlLinkPattern.search(_segment).group(0).replace("/", "-")    
-        addDirectoryItem(plugin.handle, plugin.url_for(show_category, _link), ListItem(_title), True)
+        _title = m.group()[:-9].replace(">", "")
+        _segment = _content[m.end() - 250:m.end()-9]
+        print("TITLE: " + _title)        
+        #print(_segment)
+        try:
+            _link = _urlLinkPattern.search(_segment).group(0).replace("/", "-")    
+            print("LINK" + _link)
+            addDirectoryItem(plugin.handle, plugin.url_for(show_category, _link), ListItem(_title), True)
+        except Exception:        
+            xbmc.log(msg='SEGMENT:' + _segment, level=xbmc.LOGDEBUG)   
+
+        
+        
     
     endOfDirectory(plugin.handle)
  

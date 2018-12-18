@@ -61,13 +61,12 @@ AS_LAUNCH_LINK = 'XBMC.RunPlugin(plugin://program.plexus/?mode=1&url={url}&name=
 # Get reddit soccser streams
 #_response = requests.get('https://www.reddit.com/r/soccerstreams/', headers = {'User-agent': 'myplugin'})
 _response = getRequest("https://www.reddit.com/r/soccerstreams/")
-_content = _response._content
+_content = _response
 _pattern = re.compile(r'\[[0-9].*vs.*<\/h2', re.UNICODE)
 _urlLinkPattern = re.compile(r'[\w]*\/[0-9]([a-z0-9A-Z%_])*_vs_[\w]*', re.UNICODE)
-_streamLinkPattern = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
+_streamLinkPattern = re.compile(r'(\[[a-zA-Z0-9_\[\] ]*\] )?acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
 _acePattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
-#_list = _pattern.findall(_content.decode('utf8'))
-#_listLink = _patternURLLink.findall(_content.decode('utf8'))
+_tagsPattern = re.compile(r'\[[a-zA-Z0-9_\[\] ]*\]', re.UNICODE)
 
 @plugin.route('/')
 def index():
@@ -88,45 +87,26 @@ def show_category(category_id):
     # Gather stream links    
     #_responseDetails = requests.get(_test, headers = {'User-agent': 'your bot 0.2'})
     _responseDetails = getRequest(_matchURLDecoded)
-    _contentDetails = _responseDetails.content
-    for _sl in _streamLinkPattern.finditer(_contentDetails):
-        print("stream link: " + _sl.group())
+    _contentDetails = _responseDetails
+    _iterator = _streamLinkPattern.finditer(_contentDetails)
+    _list = []
+
+    for j in _iterator:
+        _list.append(j.group())
+        print("link: " + j.group())
+
+    _streamList = list(set(_list))
+
+    for _sl in _streamList:
+        print("stream link: " + str(_sl))
+        _tags = _tagsPattern.search(_sl)
+        _tag = _tags.group(0)
         # Last paramter 'isFolder' to False
-        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+_sl.group().replace("/", "-")), ListItem(""+_sl.group()), False)
-
+        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+_sl.replace("/", "-")), ListItem("" + _tag), False)
+        
     endOfDirectory(plugin.handle)
-
-    #_listDetails = re.findall(r'\[[a-zA-Z0-9_\[\] ]*\] acestream:\/\/\w+', _contentDetails)
-    #_finallist = list(set(_listDetails))
-
-    #if len(_finallist) > 0:
-    #    for x in _finallist:
-    #        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+x.replace("/", "-")), ListItem(""+x), True)    
-
-    #_acepattern = re.compile(r'acestream:\/\/\w+', re.UNICODE)
-    #_matchObj = _heeuuu.search("[hfghfghf] acestream://ea3a0915d8530e49de0b8e5c3fb60f7acd66c923")
-    #dialog = xbmcgui.Dialog()
-    #if _matchObj:
-    #    _ok = dialog.ok("heu", _acepattern.search("[hfghfghf] acestream://ea3a0915d8530e49de0b8e5c3fb60f7acd66c923").group(0))
-    #else:
-    #    _ok = dialog.ok("heu", "no match!")
-
-    #
-    # 
-    # _patternStreamLink = re.compile(r'acestream:\/\/\w+ *(\[[a-zA-Z0-9_\[\] ]*\])?', re.UNICODE)
-
-"""     _listDetails = re.findall(r'acestream:\/\/\w+ (\[[a-zA-Z0-9_\[\] ]*\])?', _contentDetails)
-    print("_contentDetails: " + _contentDetails)
-    for n in _listDetails:
-        print("_listDetails: " + n)
-
-    _finallist = list(set(_listDetails))
-
-    if len(_finallist) > 0:
-        for x in _finallist:
-            addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+x.replace("/", "-")), ListItem(""+x), True)
-            print("finallist: " + x)
- """
+"""         for u in _tags:
+            print("tags: " + str(u)) """
 
 @plugin.route('/categoryDetails/<categoryDetails_id>')
 def show_categoryDetails(categoryDetails_id):

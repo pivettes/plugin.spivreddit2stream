@@ -9,4 +9,4 @@
 Thumbs.db
 *~
 .cache
-settings.json
+/.vscode/settings.json

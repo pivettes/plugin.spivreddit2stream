@@ -110,9 +110,12 @@ def show_category(category_id):
     for _sl in _streamList:
         print("stream link: " + str(_sl))
         _tags = _tagsPattern.search(_sl)
-        _tag = _tags.group(0)
-        # Last paramter 'isFolder' to False
-        addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+_sl.replace("/", "-")), ListItem("" + _tag), False)
+        try:
+            _tag = _tags.group(0)
+            # Last paramter 'isFolder' to False
+            addDirectoryItem(plugin.handle, plugin.url_for(show_categoryDetails, ""+_sl.replace("/", "-")), ListItem("" + _tag), False)
+        except Exception:        
+            xbmc.log(msg='No tags found!', level=xbmc.LOGDEBUG)           
         
     endOfDirectory(plugin.handle)
 """         for u in _tags:
